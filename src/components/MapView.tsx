@@ -81,9 +81,9 @@ export default function MapView({
       },
       center: [99.3, 18.35],
       zoom: 6.3,
-      pitch: 0,
-      bearing: 0,
-      maxPitch: 60,
+      pitch: 40,
+      bearing: -10,
+      maxPitch: 70,
       minZoom: 5,
       maxZoom: 18,
     });
@@ -106,6 +106,44 @@ export default function MapView({
           duration: 0,
         });
       }
+
+      // 3D Terrain (free AWS Terrarium tiles)
+      map.addSource('terrain-source', {
+        type: 'raster-dem',
+        tiles: [
+          'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
+        ],
+        encoding: 'terrarium',
+        tileSize: 256,
+        maxzoom: 15,
+      });
+
+      map.setTerrain({ source: 'terrain-source', exaggeration: 1.3 });
+
+      // Hillshade for depth
+      map.addSource('hillshade-source', {
+        type: 'raster-dem',
+        tiles: [
+          'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
+        ],
+        encoding: 'terrarium',
+        tileSize: 256,
+        maxzoom: 15,
+      });
+
+      map.addLayer(
+        {
+          id: 'hillshade',
+          type: 'hillshade',
+          source: 'hillshade-source',
+          paint: {
+            'hillshade-shadow-color': '#473B24',
+            'hillshade-illumination-direction': 315,
+            'hillshade-exaggeration': 0.4,
+          },
+        },
+        'carto-tiles',
+      );
 
       // Load province GeoJSON
       fetch('/innovationmap/thailand-provinces.json')
