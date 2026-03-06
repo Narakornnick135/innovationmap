@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: 'Kanit', 'Prompt', sans-serif;
+  --font-mono: 'Geist Mono', monospace;
+  --color-background: #ffffff;
+  --color-foreground: #1e293b;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* ===== Sidebar scrollbar (matching original) ===== */
+.sidebar-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ===== Province item hover/active (matching original) ===== */
+.province-item:hover {
+  background: rgba(59, 130, 246, 0.08);
+  transform: translateX(4px);
+}
+
+.province-item.active {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* ===== Innovation Side Panel (matching original) ===== */
+.innovation-panel {
+  position: fixed;
+  top: 0;
+  right: -50vw;
+  width: 50vw;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -4px 0 30px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  transition: right 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.innovation-panel.open {
+  right: 0;
+}
+
+@media (max-width: 1024px) {
+  .innovation-panel {
+    width: 100vw;
+    right: -100vw;
+  }
+}
+
+/* ===== MapLibre Nav Controls ===== */
+.maplibregl-ctrl-group {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1) !important;
+  overflow: hidden;
+}
+
+.maplibregl-ctrl-group button {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+/* ===== Innovation Pin Markers ===== */
+.innovation-marker {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+/* ===== MapLibre marker overflow fix ===== */
+.maplibregl-marker {
+  overflow: visible !important;
+}
+
+/* ===== Line clamp utility ===== */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ===== Slide-in animation ===== */
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ===== Pulse animation for dot ===== */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
