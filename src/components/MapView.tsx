@@ -7,6 +7,16 @@ import { Innovation, CATEGORIES, PROVINCES } from '@/types';
 
 const ACTIVE_PROVINCES = new Set(PROVINCES.map((p) => p.nameEn));
 
+function getOuterRings(geometry: GeoJSON.Geometry): number[][][] {
+  if (geometry.type === 'Polygon') {
+    return [(geometry as GeoJSON.Polygon).coordinates[0]];
+  }
+  if (geometry.type === 'MultiPolygon') {
+    return (geometry as GeoJSON.MultiPolygon).coordinates.map((poly) => poly[0]);
+  }
+  return [];
+}
+
 interface MapViewProps {
   innovations: Innovation[];
   activeCategory: string;
@@ -105,20 +115,47 @@ export default function MapView({
             ACTIVE_PROVINCES.has(f.properties?.name || ''),
           );
 
-          // Active provinces: light indigo fill + border
-          map.addSource('active-provinces', {
+          // Punch holes for active provinces in a dark overlay
+          const holes: number[][][] = [];
+          activeFeatures.forEach((f) => {
+            holes.push(...getOuterRings(f.geometry));
+          });
+
+          const worldRing = [
+            [-180, -90],
+            [180, -90],
+            [180, 90],
+            [-180, 90],
+            [-180, -90],
+          ];
+
+          // Dark mask over everything EXCEPT active provinces (like original)
+          map.addSource('world-mask', {
             type: 'geojson',
-            data: { type: 'FeatureCollection', features: activeFeatures },
+            data: {
+              type: 'Feature',
+              properties: {},
+              geometry: {
+                type: 'Polygon',
+                coordinates: [worldRing, ...holes],
+              },
+            },
           });
 
           map.addLayer({
-            id: 'active-fill',
+            id: 'world-mask-fill',
             type: 'fill',
-            source: 'active-provinces',
+            source: 'world-mask',
             paint: {
-              'fill-color': '#e0e7ff',
-              'fill-opacity': 0.25,
+              'fill-color': '#1a1a2e',
+              'fill-opacity': 0.35,
             },
+          });
+
+          // Active province borders (green like original)
+          map.addSource('active-provinces', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: activeFeatures },
           });
 
           map.addLayer({
@@ -126,9 +163,9 @@ export default function MapView({
             type: 'line',
             source: 'active-provinces',
             paint: {
-              'line-color': '#a5b4fc',
-              'line-width': 2,
-              'line-opacity': 0.7,
+              'line-color': '#4ade80',
+              'line-width': 2.5,
+              'line-opacity': 0.8,
             },
           });
 
