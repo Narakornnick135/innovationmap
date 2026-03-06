@@ -17,7 +17,7 @@ export default function SharePage() {
   if (selectedCat !== 'all') params.set('cat', selectedCat);
   if (!showBar) params.set('bar', '0');
   const queryString = params.toString();
-  const embedUrl = `${baseUrl}/embed${queryString ? '?' + queryString : ''}`;
+  const embedUrl = `${baseUrl}/innovationmap/embed${queryString ? '?' + queryString : ''}`;
 
   const iframeCode = `<iframe src="${embedUrl}" width="${width}" height="${height}px" frameborder="0" style="border:1px solid #e2e8f0;border-radius:12px;" allowfullscreen></iframe>`;
 

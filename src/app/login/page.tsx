@@ -16,7 +16,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/innovationmap/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -91,7 +91,7 @@ export default function LoginPage() {
 
         <p className="text-center text-xs text-slate-400 mt-6">
           กลับไป{' '}
-          <a href="/" className="text-blue-500 hover:underline">หน้าแผนที่</a>
+          <a href="/innovationmap" className="text-blue-500 hover:underline">หน้าแผนที่</a>
         </p>
       </div>
     </div>

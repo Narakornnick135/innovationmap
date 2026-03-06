@@ -38,7 +38,7 @@ export default function AddInnovationModal({ onClose, onAdded }: AddInnovationMo
 
     setLoading(true);
     try {
-      const res = await fetch('/api/innovations', {
+      const res = await fetch('/innovationmap/api/innovations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, lat, lng }),

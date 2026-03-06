@@ -31,13 +31,13 @@ export default function Home() {
   } | null>(null);
 
   const fetchData = useCallback(async () => {
-    const res = await fetch('/api/innovations');
+    const res = await fetch('/innovationmap/api/innovations');
     const data = await res.json();
     setInnovations(data);
   }, []);
 
   const fetchUser = useCallback(async () => {
-    const res = await fetch('/api/auth/me');
+    const res = await fetch('/innovationmap/api/auth/me');
     const data = await res.json();
     setUser(data.user);
   }, []);
@@ -82,7 +82,7 @@ export default function Home() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/innovationmap/api/auth/logout', { method: 'POST' });
     setUser(null);
   };
 

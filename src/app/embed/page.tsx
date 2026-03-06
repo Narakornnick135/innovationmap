@@ -33,7 +33,7 @@ function EmbedContent() {
   const showSidebar = searchParams.get('bar') !== '0';
 
   useEffect(() => {
-    fetch('/api/innovations')
+    fetch('/innovationmap/api/innovations')
       .then((res) => res.json())
       .then(setInnovations);
   }, []);

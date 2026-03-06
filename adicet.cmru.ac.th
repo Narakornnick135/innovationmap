@@ -1,0 +1,107 @@
+# HTTP → Redirect to HTTPS
+server {
+    listen 80;
+    server_name adicet.cmru.ac.th www.adicet.cmru.ac.th;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS Server
+server {
+    listen 443 ssl http2;
+    server_name adicet.cmru.ac.th www.adicet.cmru.ac.th;
+
+    # Laravel หลัก (root domain)
+    root /var/www/laravel/public;
+    index index.php index.html;
+
+    # SSL Certificates
+    ssl_certificate /etc/letsencrypt/live/adicet.cmru.ac.th/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/adicet.cmru.ac.th/privkey.pem;
+
+    # SSL Config
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    # File upload limit
+    client_max_body_size 120M;
+
+    # Laravel หลัก (PHP-FPM)
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP handler (for Laravel หลัก)
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    # Laravel รอง (ทำงานที่ port 8087) ผ่าน path /cmgc-park
+    location ^~ /cmgc-park/ {
+        proxy_pass http://127.0.0.1:8087/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+
+   location ^~ /arms/ {
+        client_max_body_size 120M;
+        proxy_pass http://127.0.0.1:8088/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+
+    # Innovation Map (Next.js port 3003)
+    location ^~ /innovationmap/ {
+        proxy_pass http://127.0.0.1:3003;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    location = /innovationmap {
+        return 301 /innovationmap/;
+    }
+
+    # Node-RED proxy at /node/
+    location /node/ {
+        proxy_pass http://localhost:1880/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Block access to .ht* and hidden files
+    location ~ /\.ht {
+        deny all;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    # Logs
+    access_log /var/log/nginx/adicet_access.log;
+    error_log /var/log/nginx/adicet_error.log;
+}

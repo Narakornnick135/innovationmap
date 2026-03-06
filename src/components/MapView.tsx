@@ -108,7 +108,7 @@ export default function MapView({
       }
 
       // Load province GeoJSON
-      fetch('/thailand-provinces.json')
+      fetch('/innovationmap/thailand-provinces.json')
         .then((res) => res.json())
         .then((geojson: GeoJSON.FeatureCollection) => {
           // --- White mask with active provinces punched out (matching original) ---
