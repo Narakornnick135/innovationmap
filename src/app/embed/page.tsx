@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Innovation } from '@/types';
@@ -16,7 +16,7 @@ const MapView = dynamic(() => import('@/components/MapView'), {
   ),
 });
 
-export default function EmbedPage() {
+function EmbedContent() {
   const searchParams = useSearchParams();
   const [innovations, setInnovations] = useState<Innovation[]>([]);
   const [activeCategory, setActiveCategory] = useState('all');
@@ -99,5 +99,19 @@ export default function EmbedPage() {
         onClose={handleClosePanel}
       />
     </div>
+  );
+}
+
+export default function EmbedPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
+          <div className="text-slate-400 text-sm">กำลังโหลดแผนที่...</div>
+        </div>
+      }
+    >
+      <EmbedContent />
+    </Suspense>
   );
 }
