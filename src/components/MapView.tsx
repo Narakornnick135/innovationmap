@@ -7,12 +7,12 @@ import { Innovation, CATEGORIES, PROVINCES } from '@/types';
 
 const ACTIVE_PROVINCES = new Set(PROVINCES.map((p) => p.nameEn));
 
-function getOuterRings(geometry: GeoJSON.Geometry): number[][][] {
+function getAllRings(geometry: GeoJSON.Geometry): number[][][] {
   if (geometry.type === 'Polygon') {
-    return [(geometry as GeoJSON.Polygon).coordinates[0]];
+    return (geometry as GeoJSON.Polygon).coordinates;
   }
   if (geometry.type === 'MultiPolygon') {
-    return (geometry as GeoJSON.MultiPolygon).coordinates.map((poly) => poly[0]);
+    return (geometry as GeoJSON.MultiPolygon).coordinates.flat();
   }
   return [];
 }
@@ -118,7 +118,7 @@ export default function MapView({
           // Punch holes for active provinces in a dark overlay
           const holes: number[][][] = [];
           activeFeatures.forEach((f) => {
-            holes.push(...getOuterRings(f.geometry));
+            holes.push(...getAllRings(f.geometry));
           });
 
           const worldRing = [
