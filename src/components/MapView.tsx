@@ -81,9 +81,9 @@ export default function MapView({
       },
       center: [99.3, 18.35],
       zoom: 6.3,
-      pitch: 40,
-      bearing: -10,
-      maxPitch: 70,
+      pitch: 0,
+      bearing: 0,
+      maxPitch: 60,
       minZoom: 5,
       maxZoom: 18,
     });
@@ -106,19 +106,6 @@ export default function MapView({
           duration: 0,
         });
       }
-
-      // 3D Terrain (free AWS Terrarium tiles — single source for performance)
-      map.addSource('terrain-source', {
-        type: 'raster-dem',
-        tiles: [
-          'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
-        ],
-        encoding: 'terrarium',
-        tileSize: 256,
-        maxzoom: 13,
-      });
-
-      map.setTerrain({ source: 'terrain-source', exaggeration: 1.0 });
 
       // Load province GeoJSON
       fetch('/innovationmap/thailand-provinces.json')

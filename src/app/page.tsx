@@ -76,7 +76,7 @@ export default function Home() {
     setFlyToTarget({
       center: [99.3, 18.35],
       zoom: 6.3,
-      pitch: 40,
+      pitch: 0,
       key: Date.now(),
     });
   }, []);
