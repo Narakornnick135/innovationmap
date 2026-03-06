@@ -107,7 +107,7 @@ export default function MapView({
         });
       }
 
-      // 3D Terrain (free AWS Terrarium tiles)
+      // 3D Terrain (free AWS Terrarium tiles — single source for performance)
       map.addSource('terrain-source', {
         type: 'raster-dem',
         tiles: [
@@ -115,48 +115,31 @@ export default function MapView({
         ],
         encoding: 'terrarium',
         tileSize: 256,
-        maxzoom: 15,
+        maxzoom: 13,
       });
 
-      map.setTerrain({ source: 'terrain-source', exaggeration: 1.3 });
-
-      // Hillshade for depth
-      map.addSource('hillshade-source', {
-        type: 'raster-dem',
-        tiles: [
-          'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
-        ],
-        encoding: 'terrarium',
-        tileSize: 256,
-        maxzoom: 15,
-      });
-
-      map.addLayer(
-        {
-          id: 'hillshade',
-          type: 'hillshade',
-          source: 'hillshade-source',
-          paint: {
-            'hillshade-shadow-color': '#473B24',
-            'hillshade-illumination-direction': 315,
-            'hillshade-exaggeration': 0.4,
-          },
-        },
-        'carto-tiles',
-      );
+      map.setTerrain({ source: 'terrain-source', exaggeration: 1.0 });
 
       // Load province GeoJSON
       fetch('/innovationmap/thailand-provinces.json')
         .then((res) => res.json())
         .then((geojson: GeoJSON.FeatureCollection) => {
-          // --- White mask with active provinces punched out (matching original) ---
           const activeFeatures = geojson.features.filter((f) =>
             ACTIVE_PROVINCES.has(f.properties?.name || ''),
           );
+          const inactiveThaiFeatures = geojson.features.filter((f) =>
+            !ACTIVE_PROVINCES.has(f.properties?.name || ''),
+          );
 
-          const holes: number[][][] = [];
+          // Collect all Thai province rings (active) as holes
+          const allThaiHoles: number[][][] = [];
+          geojson.features.forEach((f) => {
+            allThaiHoles.push(...getOuterRings(f.geometry));
+          });
+
+          const activeHoles: number[][][] = [];
           activeFeatures.forEach((f) => {
-            holes.push(...getOuterRings(f.geometry));
+            activeHoles.push(...getOuterRings(f.geometry));
           });
 
           const worldRing = [
@@ -167,29 +150,46 @@ export default function MapView({
             [-180, -90],
           ];
 
-          map.addSource('world-mask', {
+          // Layer 1: Foreign countries mask (world minus ALL Thailand) — strong dim
+          map.addSource('foreign-mask', {
             type: 'geojson',
             data: {
               type: 'Feature',
               properties: {},
               geometry: {
                 type: 'Polygon',
-                coordinates: [worldRing, ...holes],
+                coordinates: [worldRing, ...allThaiHoles],
               },
             },
           });
 
           map.addLayer({
-            id: 'world-mask-fill',
+            id: 'foreign-mask-fill',
             type: 'fill',
-            source: 'world-mask',
+            source: 'foreign-mask',
             paint: {
               'fill-color': '#ffffff',
-              'fill-opacity': 0.65,
+              'fill-opacity': 0.6,
             },
           });
 
-          // --- Province border lines (indigo) ---
+          // Layer 2: Non-active Thai provinces — light dim
+          map.addSource('inactive-thai', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features: inactiveThaiFeatures },
+          });
+
+          map.addLayer({
+            id: 'inactive-thai-fill',
+            type: 'fill',
+            source: 'inactive-thai',
+            paint: {
+              'fill-color': '#ffffff',
+              'fill-opacity': 0.35,
+            },
+          });
+
+          // --- Province border lines (indigo) for active provinces ---
           map.addSource('active-provinces', {
             type: 'geojson',
             data: { type: 'FeatureCollection', features: activeFeatures },
