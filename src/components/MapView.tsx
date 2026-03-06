@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useMemo } from 'react';
-import maplibregl from 'maplibre-gl';
-import 'maplibre-gl/dist/maplibre-gl.css';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { Innovation, CATEGORIES, PROVINCES } from '@/types';
 
-const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY || '';
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
 const ACTIVE_PROVINCES = new Set(PROVINCES.map((p) => p.nameEn));
 
 function getAllRings(geometry: GeoJSON.Geometry): number[][][] {
@@ -34,9 +35,9 @@ export default function MapView({
   flyToTarget,
 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
-  const labelMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const labelMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const onSelectRef = useRef(onSelectInnovation);
   onSelectRef.current = onSelectInnovation;
 
@@ -52,25 +53,25 @@ export default function MapView({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const map = new maplibregl.Map({
+    const map = new mapboxgl.Map({
       container: containerRef.current,
-      style: `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${MAPTILER_KEY}`,
+      style: 'mapbox://styles/mapbox/outdoors-v12',
       center: [99.3, 18.35],
       zoom: 6.3,
       pitch: 0,
       bearing: 0,
+      antialias: true,
       maxPitch: 60,
       minZoom: 5,
       maxZoom: 18,
     });
 
-    // Controls at bottom-right like original
     map.addControl(
-      new maplibregl.NavigationControl({ visualizePitch: true }),
+      new mapboxgl.NavigationControl({ visualizePitch: true }),
       'bottom-right',
     );
     map.addControl(
-      new maplibregl.ScaleControl({ maxWidth: 150 }),
+      new mapboxgl.ScaleControl({ maxWidth: 150 }),
       'bottom-left',
     );
 
@@ -83,11 +84,33 @@ export default function MapView({
         });
       }
 
-      // Hide all built-in labels (we have our own Thai province labels)
+      // Add DEM source for 3D terrain
+      map.addSource('mapbox-dem', {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        tileSize: 512,
+        maxzoom: 14,
+      });
+
+      // Hide all built-in labels (we have our own Thai labels)
       map.getStyle().layers.forEach((layer) => {
         if (layer.type === 'symbol') {
           map.setLayoutProperty(layer.id, 'visibility', 'none');
         }
+      });
+
+      // Enable 3D terrain
+      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+
+      // Sky atmosphere effect
+      map.addLayer({
+        id: 'sky',
+        type: 'sky',
+        paint: {
+          'sky-type': 'atmosphere',
+          'sky-atmosphere-sun': [0.0, 0.0],
+          'sky-atmosphere-sun-intensity': 15,
+        },
       });
 
       // Load province GeoJSON
@@ -112,7 +135,7 @@ export default function MapView({
             [-180, -90],
           ];
 
-          // Dark mask over everything EXCEPT active provinces (like original)
+          // Dark mask over everything EXCEPT active provinces
           map.addSource('world-mask', {
             type: 'geojson',
             data: {
@@ -152,7 +175,7 @@ export default function MapView({
             },
           });
 
-          // --- Province name labels (HTML markers for Thai text support) ---
+          // Province name labels (HTML markers for Thai text)
           labelMarkersRef.current.forEach((m) => m.remove());
           labelMarkersRef.current = [];
 
@@ -171,7 +194,7 @@ export default function MapView({
               user-select: none;
             `;
 
-            const marker = new maplibregl.Marker({
+            const marker = new mapboxgl.Marker({
               element: el,
               anchor: 'center',
             })
@@ -198,14 +221,12 @@ export default function MapView({
     const map = mapRef.current;
     if (!map) return;
 
-    // Clear old markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
     filtered.forEach((item) => {
       const cat = CATEGORIES[item.cat] || { color: '#64748b', icon: '📌' };
 
-      // Pin element matching original SVG style
       const el = document.createElement('div');
       el.className = 'innovation-marker';
       el.style.cssText =
@@ -217,7 +238,6 @@ export default function MapView({
         </svg>
       `;
 
-      // Hover: brightness + shadow (matching original)
       el.addEventListener('mouseenter', () => {
         el.style.filter =
           'drop-shadow(0 4px 8px rgba(0,0,0,0.5)) brightness(1.15)';
@@ -226,7 +246,6 @@ export default function MapView({
         el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.35))';
       });
 
-      // Click: select innovation + fly to (NO popup, opens side panel instead)
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         onSelectRef.current(item);
@@ -249,7 +268,7 @@ export default function MapView({
         });
       });
 
-      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([item.lng, item.lat])
         .addTo(map);
 
