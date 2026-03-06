@@ -7,16 +7,6 @@ import { Innovation, CATEGORIES, PROVINCES } from '@/types';
 
 const ACTIVE_PROVINCES = new Set(PROVINCES.map((p) => p.nameEn));
 
-function getOuterRings(geometry: GeoJSON.Geometry): number[][][] {
-  if (geometry.type === 'Polygon') {
-    return [(geometry as GeoJSON.Polygon).coordinates[0]];
-  }
-  if (geometry.type === 'MultiPolygon') {
-    return (geometry as GeoJSON.MultiPolygon).coordinates.map((poly) => poly[0]);
-  }
-  return [];
-}
-
 interface MapViewProps {
   innovations: Innovation[];
   activeCategory: string;
@@ -114,72 +104,21 @@ export default function MapView({
           const activeFeatures = geojson.features.filter((f) =>
             ACTIVE_PROVINCES.has(f.properties?.name || ''),
           );
-          const inactiveThaiFeatures = geojson.features.filter((f) =>
-            !ACTIVE_PROVINCES.has(f.properties?.name || ''),
-          );
 
-          // Collect all Thai province rings (active) as holes
-          const allThaiHoles: number[][][] = [];
-          geojson.features.forEach((f) => {
-            allThaiHoles.push(...getOuterRings(f.geometry));
-          });
-
-          const activeHoles: number[][][] = [];
-          activeFeatures.forEach((f) => {
-            activeHoles.push(...getOuterRings(f.geometry));
-          });
-
-          const worldRing = [
-            [-180, -90],
-            [180, -90],
-            [180, 90],
-            [-180, 90],
-            [-180, -90],
-          ];
-
-          // Layer 1: Foreign countries mask (world minus ALL Thailand) — strong dim
-          map.addSource('foreign-mask', {
-            type: 'geojson',
-            data: {
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'Polygon',
-                coordinates: [worldRing, ...allThaiHoles],
-              },
-            },
-          });
-
-          map.addLayer({
-            id: 'foreign-mask-fill',
-            type: 'fill',
-            source: 'foreign-mask',
-            paint: {
-              'fill-color': '#ffffff',
-              'fill-opacity': 0.6,
-            },
-          });
-
-          // Layer 2: Non-active Thai provinces — light dim
-          map.addSource('inactive-thai', {
-            type: 'geojson',
-            data: { type: 'FeatureCollection', features: inactiveThaiFeatures },
-          });
-
-          map.addLayer({
-            id: 'inactive-thai-fill',
-            type: 'fill',
-            source: 'inactive-thai',
-            paint: {
-              'fill-color': '#ffffff',
-              'fill-opacity': 0.35,
-            },
-          });
-
-          // --- Province border lines (indigo) for active provinces ---
+          // Active provinces: light indigo fill + border
           map.addSource('active-provinces', {
             type: 'geojson',
             data: { type: 'FeatureCollection', features: activeFeatures },
+          });
+
+          map.addLayer({
+            id: 'active-fill',
+            type: 'fill',
+            source: 'active-provinces',
+            paint: {
+              'fill-color': '#e0e7ff',
+              'fill-opacity': 0.25,
+            },
           });
 
           map.addLayer({
