@@ -5,6 +5,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Innovation, CATEGORIES, PROVINCES } from '@/types';
 
+const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY || '';
 const ACTIVE_PROVINCES = new Set(PROVINCES.map((p) => p.nameEn));
 
 function getAllRings(geometry: GeoJSON.Geometry): number[][][] {
@@ -53,32 +54,7 @@ export default function MapView({
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: {
-        version: 8,
-        name: 'Voyager No Labels',
-        sources: {
-          carto: {
-            type: 'raster',
-            tiles: [
-              'https://a.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}@2x.png',
-              'https://b.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}@2x.png',
-              'https://c.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}@2x.png',
-            ],
-            tileSize: 256,
-            attribution:
-              '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-          },
-        },
-        layers: [
-          {
-            id: 'carto-tiles',
-            type: 'raster',
-            source: 'carto',
-            minzoom: 0,
-            maxzoom: 19,
-          },
-        ],
-      },
+      style: `https://api.maptiler.com/maps/outdoor-v2/style.json?key=${MAPTILER_KEY}`,
       center: [99.3, 18.35],
       zoom: 6.3,
       pitch: 0,
@@ -106,6 +82,13 @@ export default function MapView({
           duration: 0,
         });
       }
+
+      // Hide all built-in labels (we have our own Thai province labels)
+      map.getStyle().layers.forEach((layer) => {
+        if (layer.type === 'symbol') {
+          map.setLayoutProperty(layer.id, 'visibility', 'none');
+        }
+      });
 
       // Load province GeoJSON
       fetch('/innovationmap/thailand-provinces.json')
