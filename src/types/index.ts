@@ -3,6 +3,7 @@ export interface Innovation {
   code: string;
   cat: string;
   name: string;
+  innovator: string;
   desc: string;
   lat: number;
   lng: number;

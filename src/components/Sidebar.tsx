@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import { Innovation, CATEGORIES, PROVINCES } from '@/types';
-import Link from 'next/link';
 
 interface SidebarProps {
   innovations: Innovation[];
@@ -91,17 +90,6 @@ export default function Sidebar({
           <p className="text-xs text-[#64748B] font-light leading-relaxed">
             adiCET — มหาวิทยาลัยราชภัฏเชียงใหม่
           </p>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="inline-flex items-center gap-1.5 text-xs text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-              {innovations.length} นวัตกรรม
-            </span>
-            {user && (
-              <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
-                {user.username}
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Scrollable content */}
@@ -116,10 +104,6 @@ export default function Sidebar({
                 background: activeCategory === 'all' ? 'rgba(59,130,246,0.08)' : 'transparent',
               }}
             >
-              <span
-                className="w-2 h-2 rounded-full shrink-0"
-                style={{ background: 'linear-gradient(135deg, #f97316, #3b82f6)' }}
-              />
               <span className="flex-1 text-[17px] font-medium text-[#1E293B]">ทั้งหมด</span>
               <span className="text-[15px] text-[#94A3B8]">All</span>
               <span className="text-[17px] font-bold text-[#1E293B] pl-1">
@@ -137,10 +121,6 @@ export default function Sidebar({
                   background: activeCategory === key ? 'rgba(59,130,246,0.08)' : 'transparent',
                 }}
               >
-                <span
-                  className="w-2 h-2 rounded-full shrink-0"
-                  style={{ backgroundColor: val.color }}
-                />
                 <span className="flex-1 text-[17px] font-medium text-[#1E293B]">{val.label}</span>
                 <span className="text-[15px] text-[#94A3B8]">{val.labelEn}</span>
                 <span className="text-[17px] font-bold text-[#1E293B] pl-1">
@@ -178,41 +158,21 @@ export default function Sidebar({
         </div>
 
         {/* Bottom actions */}
-        {!isEmbed && (
+        {!isEmbed && user && (
           <div className="p-4 border-t border-[#E2E8F0] space-y-2 shrink-0">
-            {/* Share button */}
-            <Link
-              href="/share"
-              className="w-full py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-sm font-medium transition flex items-center justify-center gap-2"
+            <button
+              onClick={onAddClick}
+              className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
             >
-              <span className="text-base">📤</span>
-              แชร์ / ฝังแผนที่ (iframe)
-            </Link>
-
-            {user ? (
-              <>
-                <button
-                  onClick={onAddClick}
-                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
-                >
-                  <span className="text-lg leading-none">+</span>
-                  เพิ่มนวัตกรรมใหม่
-                </button>
-                <button
-                  onClick={onLogout}
-                  className="w-full py-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 text-xs font-medium transition"
-                >
-                  ออกจากระบบ ({user.username})
-                </button>
-              </>
-            ) : (
-              <Link
-                href="/login"
-                className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
-              >
-                เข้าสู่ระบบ (ผู้ดูแล)
-              </Link>
-            )}
+              <span className="text-lg leading-none">+</span>
+              เพิ่มนวัตกรรมใหม่
+            </button>
+            <button
+              onClick={onLogout}
+              className="w-full py-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 text-xs font-medium transition"
+            >
+              ออกจากระบบ ({user.username})
+            </button>
           </div>
         )}
       </aside>

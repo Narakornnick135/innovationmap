@@ -13,6 +13,7 @@ export default function AddInnovationModal({ onClose, onAdded }: AddInnovationMo
     code: '',
     cat: 'อาหารและแปรรูป',
     name: '',
+    innovator: '',
     desc: '',
     lat: '',
     lng: '',
@@ -96,6 +97,17 @@ export default function AddInnovationModal({ onClose, onAdded }: AddInnovationMo
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="ชื่อโครงการ"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1">ชื่อนวัตกร</label>
+              <input
+                type="text"
+                value={form.innovator}
+                onChange={(e) => setForm({ ...form, innovator: e.target.value })}
+                placeholder="ชื่อผู้คิดค้น / หน่วยงาน"
                 className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-slate-700"
               />
             </div>

@@ -115,6 +115,8 @@ export default function Home() {
       <InnovationPanel
         innovation={selectedInnovation}
         onClose={handleClosePanel}
+        user={user}
+        onUpdated={fetchData}
       />
 
       {/* Reset view button */}
@@ -127,7 +129,7 @@ export default function Home() {
           hover:-translate-y-0.5 transition-all cursor-pointer
           flex items-center gap-2"
       >
-        🌏 มุมมองภาพรวม
+        มุมมองภาพรวม
       </button>
 
       {/* Add innovation modal (only when logged in) */}
