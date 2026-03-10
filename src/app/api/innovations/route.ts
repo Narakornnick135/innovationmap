@@ -15,13 +15,13 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { code, cat, name, desc, lat, lng } = body;
+    const { code, cat, name, innovator, desc, lat, lng } = body;
 
     if (!code || !cat || !name || !desc || lat == null || lng == null) {
       return NextResponse.json({ error: 'กรุณากรอกข้อมูลให้ครบ' }, { status: 400 });
     }
 
-    const newItem = addInnovation({ code, cat, name, desc, lat: Number(lat), lng: Number(lng) });
+    const newItem = addInnovation({ code, cat, name, innovator: innovator || '', desc, lat: Number(lat), lng: Number(lng) });
     return NextResponse.json(newItem, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'ข้อมูลไม่ถูกต้อง' }, { status: 400 });
